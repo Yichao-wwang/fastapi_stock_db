@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>概念板块</title>
+</head>
+<body>
+    <table border="1" id="book-table">
+        <thead>
+            <tr>
+                <th>GNBK Name</th>
+                <th>Pinyin Start</th>
+                <th>Code</th>
+                <!-- 添加其他书籍属性的表头 -->
+            </tr>
+        </thead>
+        <tbody id="book-table-body">
+            {% for book in books %}
+            <tr>
+                <td>{{ book.gnbkname }}</td>
+                <td>{{ book.pinyin_start }}</td>
+                <td>{{ book.code }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <script>
+        var loading = false; // 标记是否正在加载数据
+        var offset = 0; // 初始偏移量
+        var limit = 100; // 每次加载的数量
+
+        window.addEventListener("scroll", function() {
+            if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight && !loading) {
+                loading = true;
+                // 发送AJAX请求到后端获取更多数据
+                var xhr = new XMLHttpRequest();
+                xhr.open("GET", "/load_more_books?offset=" + offset + "&limit=" + limit, true);
+                xhr.onreadystatechange = function() {
+                    if (xhr.readyState == 4 && xhr.status == 200) {
+                        // 解析JSON数据并渲染到页面
+                        var newBooks = JSON.parse(xhr.responseText);
+                        var tbody = document.getElementById("book-table-body");
+                        newBooks.forEach(function(book) {
+                            var tr = document.createElement("tr");
+                            tr.innerHTML = "<td>" + book.gnbkname + "</td><td>" + book.pinyin_start + "</td><td>" + book.code + "</td>";
+                            tbody.appendChild(tr);
+                        });
+                        offset += limit; // 更新偏移量
+                        loading = false; // 标记加载完成
+                    }
+                };
+                xhr.send();
+            }
+        });
+    </script>
+</body>
+</html>
